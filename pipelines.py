@@ -30,7 +30,26 @@ class SQLitePipeline(object):
                         organization TEXT,
                         date DATE,
                         min_salary INT,
-                        max_salary INT
+                        max_salary INT,
+                        intership TEXT,
+                        work_type TEXT,
+                        schedule TEXT,
+                        remote TEXT,
+                        remote_interview TEXT,
+                        languages TEXT,
+                        salary_type TEXT,
+                        org_desc TEXT,
+                        in_bg_since TEXT,
+                        employees TEXT,
+                        employees_worldwide TEXT,
+                        no_experience TEXT,
+                        year_founded TEXT,
+                        sector TEXT,
+                        central_office TEXT,
+                        org_activity TEXT,
+                        org_address TEXT,
+                        tags TEXT,
+                        categories TEXT
                     )
                     
                 ''')  # CONSTRAINT PK PRIMARY KEY (title, organization)
@@ -69,7 +88,7 @@ class SQLitePipeline(object):
             pass
         else:
             self.c.execute('''
-                INSERT INTO jobs (title,job_link,location,organization,date,min_salary,max_salary) VALUES(?,?,?,?,?,?,?)
+                INSERT INTO jobs (title,job_link,location,organization,date,min_salary,max_salary,intership,work_type,schedule,remote,remote_interview,languages,salary_type,org_desc,in_bg_since,employees,employees_worldwide,no_experience,year_founded,sector,central_office,org_activity,org_address,tags,categories) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 
             ''', (
                 item.get('job_title'),
@@ -79,7 +98,25 @@ class SQLitePipeline(object):
                 item.get('date'),
                 item.get('min_salary'),
                 item.get('max_salary'),
-
+                item.get('intership'),
+                item.get('work_type'),
+                item.get('schedule'),
+                item.get('remote'),
+                item.get('remote_interview'),
+                item.get('languages'),
+                item.get('salary_type'),
+                item.get('org_desc'),
+                item.get('in_bg_since'),
+                item.get('employees'),
+                item.get('employees_worldwide'),
+                item.get('no_experience'),
+                item.get('year_founded'),
+                item.get('sector'),
+                item.get('central_office'),
+                item.get('org_activity'),
+                item.get('org_address'),
+                item.get('tags'),
+                item.get('categories'),
             ))
             # TAGS
             # self.c.execute('''

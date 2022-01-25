@@ -15,7 +15,7 @@ class JobsZaplataSpider(CrawlSpider):
         Rule(LinkExtractor(restrict_xpaths=(
             '//div[@class="listItems"]/ul[@class="listItem "]/li[@class="c2"]/a')), callback='parse_item', follow=True),
         # Pagination
-        # Rule(LinkExtractor(restrict_xpaths='(//a[@class="next"])[1]'))
+        Rule(LinkExtractor(restrict_xpaths='(//a[@class="next"])[1]'))
 
     )
 
@@ -28,12 +28,21 @@ class JobsZaplataSpider(CrawlSpider):
             '//strong[contains(text(),"Place of employment")]/following-sibling::node()[position()=2]/descendant::*/text()').getall())
         item['organization'] = response.xpath(
             '//strong[contains(text(),"Organization")]/following-sibling::node()[position()=2]/descendant::*/text()').get()
-        # item['categories'] = response.xpath(
-        #     '//strong[contains(text(),"Category")]/following-sibling::node()[position()=2]/descendant::*/text()').getall()
+        categories = response.xpath(
+            '//strong[contains(text(),"Category")]/following-sibling::node()[position()=2]/descendant::*/text()').getall()
+        item['categories'] = ','.join(categories)
+        level = response.xpath(
+            '//strong[contains(text(),"Level")]/following-sibling::node()[position()=2]/descendant::*/text()').getall()
+        item['intership'] = 'NO'
+        for i in level:
+            if 'Interns/Students' in i:
+                item['intership'] = 'YES'
+
         item['date'] = datetime.strptime(response.xpath(
             '//div[@class="statistics"]/span/text()').get(), "%d %B %Y")
-        item['tags'] = response.xpath(
+        tags = response.xpath(
             '//div[@class="tags"]/a/text()').getall()
+        item['tags'] = ','.join(tags)
         if (response.xpath('//span[@class="clever-link searchRes"]/text()').get() is not None):
             salary = self.split_dash(self.clean(response.xpath(
                 '//span[@class="clever-link searchRes"]/text()').get().split('\n')))
@@ -43,8 +52,37 @@ class JobsZaplataSpider(CrawlSpider):
             item['min_salary'] = None
             item['max_salary'] = None
 
-        # item['type'] = response.xpath(
-        #     '//strong[contains(text(),"Type of employment")]/following-sibling::node()/a/text()').getall()
+        type = response.xpath(
+            '//strong[contains(text(),"Type of employment")]/following-sibling::node()/a/text()').getall()
+        item['remote'] = 'NO'
+        for i in type:
+            if 'Full time' in i:
+                try:
+                    if item['schedule']:
+                        item['schedule'] += ', Full time'
+                except:
+                    item['schedule'] = 'Full time'
+            if 'Part-time' in i:
+                try:
+                    if item['schedule']:
+                        item['schedule'] += ', Part time'
+                except:
+                    item['schedule'] = 'Part time'
+            if 'Telework' in i:
+                item['remote'] = 'YES'
+            if 'Permanent' in i:
+                try:
+                    if item['work_type']:
+                        item['work_type'] += ', Permanent'
+                except:
+                    item['work_type'] = 'Permanent'
+            if 'Temporary/Seasonal/Project' in i:
+                try:
+                    if item['work_type']:
+                        item['work_type'] += ', Temporary'
+                except:
+                    item['work_type'] = 'Temporary'
+
         return item
 
     def clean(self, list):
