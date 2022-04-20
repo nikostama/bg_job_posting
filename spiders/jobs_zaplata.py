@@ -21,6 +21,7 @@ class JobsZaplataSpider(CrawlSpider):
 
     def parse_item(self, response):
         item = {}
+        item['site'] = 'zaplata.bg'
         item['job_title'] = response.xpath(
             "//h1[@class='title']/text()").get()
         item['job_link'] = response.url
@@ -37,9 +38,11 @@ class JobsZaplataSpider(CrawlSpider):
         for i in level:
             if 'Interns/Students' in i:
                 item['intership'] = 'YES'
-
+        # date = response.xpath(
+        #     '//div[@class="statistics"]/span/text()').get()
+        # if date:
         item['date'] = datetime.strptime(response.xpath(
-            '//div[@class="statistics"]/span/text()').get(), "%d %B %Y")
+            '//div[@class="statistics"]/span/text()').get(), "%d %B %Y").date()
         tags = response.xpath(
             '//div[@class="tags"]/a/text()').getall()
         item['tags'] = ','.join(tags)

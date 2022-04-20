@@ -6,24 +6,32 @@ from datetime import datetime
 class SJobsDevBgSpider(scrapy.Spider):
     name = 's_jobs_dev_bg'
     allowed_domains = ['dev.bg']
-    start_urls = ['https://dev.bg/?s=&post_type=job_listing']
+    start_urls = ['https://dev.bg']
 
     def parse(self, response):
         # print(response.url)
+        for jobs in response.xpath('//div[@id="section-category-block"]/div/div/a[@class="category-name"]/@href').getall():
+            yield scrapy.Request(url=jobs, callback=self.parse_cat)
+
+    def parse_cat(self, response):
 
         for jobs in response.xpath('//div[@class="job-list-item  "]/div[@class="inner-left company-logo-wrap"]/a/@href').getall():
             yield scrapy.Request(url=jobs, callback=self.parse_job)
            # print(jobs)
-        # PAGINATION
 
+        for jobs in response.xpath('//div[@class="job-list-item  is-premium "]/div[@class="inner-left company-logo-wrap"]/a/@href').getall():
+            yield scrapy.Request(url=jobs, callback=self.parse_job)
+
+        # PAGINATION
         next_page = response.xpath(
             '//a[@class="next page-numbers"]/@href').get()
         if next_page:
-            yield scrapy.Request(url=next_page, callback=self.parse)
+            yield scrapy.Request(url=next_page, callback=self.parse_cat)
 
     def parse_job(self, response):
         # print(response.url)
         item = {}
+        item['site'] = 'dev.bg'
         item['job_title'] = response.xpath(
             '//h6[@class="job-title ab-title-placeholder ab-cb-title-placeholder"]/text()').get()
         item['job_link'] = response.url
@@ -32,7 +40,9 @@ class SJobsDevBgSpider(scrapy.Spider):
         item['location'] = response.xpath(
             '//span[@class="badge  no-padding  "]/text()').get() or None
         item['date'] = datetime.strptime(response.xpath(
-            '//li[@class="date-posted"]/time/@datetime').get(), "%Y-%m-%d")
+            '//li[@class="date-posted"]/time/@datetime').get(), "%Y-%m-%d").date()
+        item['categories'] = response.xpath(
+            '//a[@class="pill"][1]/text()').get()
         remote = response.xpath(
             '//span[@class="badge green bold remote "]').get()
         if remote:
